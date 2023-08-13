@@ -1,0 +1,38 @@
+import pandas as pd
+import os
+
+# Path to the input CSV file
+input_path = "inputpath/"
+
+# Write here all the file names that you want to downscale to desired latitudes and longitudes
+input_csv = ["2015_2024.csv", "2025_2034.csv", ..., "2085_2094.csv"]
+
+for csv in input_csv:
+    nc_path = os.path.join(input_path, csv)
+    print(nc_path)
+    # Path to the output CSV file
+    name =  os.path.splitext(csv)[0] + 'csv' + '.csv'
+    output_csv = os.path.join(input_path, name)
+    print( output_csv)
+
+    # Define latitude and longitude extents as per your needs here
+    min_lat = -90
+    max_lat = 90
+    min_lon = -180
+    max_lon = 180
+
+    # Read the CSV file
+    df = pd.read_csv(nc_path)
+
+    # Filter rows based on latitude and longitude extents
+    filtered_df = df[
+        (df['latitude'] >= min_lat) &
+        (df['latitude'] <= max_lat) &
+        (df['longitude'] >= min_lon) &
+        (df['longitude'] <= max_lon)
+    ]
+
+    # Save the filtered data to a new CSV file
+    filtered_df.to_csv(output_csv, index=False)
+
+    print("Find your downscaled file at:", output_csv)
