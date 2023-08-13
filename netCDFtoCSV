@@ -1,0 +1,49 @@
+import netCDF4
+import numpy as np
+import pandas as pd
+import csv
+import os
+
+input_path = "inputfilepath/"
+output_folder = "outputfilepath"
+
+os.makedirs(output_folder, exist_ok=True)
+
+start_year = 2015 # Adjust this as needed
+end_year = 2100  # Adjust this as needed
+
+""" 
+  Below for loop iterates from 2015 until 2100 with jump as 10 years. It will go from 2015-2024 in first iteration, and then 2035-2044
+  in second iteration and then so on, until 2095. you can change tthis pattern in nc_file.
+"""
+for year in range(start_year, end_year + 1, 10):
+    nc_file = f"pr_day_MIROC6_ssp245_r1i1p1f1_gn_{year}0101-{year+9}1231.nc"
+    nc_path = os.path.join(input_path, nc_file)
+    print(nc_path)
+    
+    if os.path.exists(nc_path):
+        output_csv_file = os.path.join(output_folder, f"{year}_{year+9}.csv")
+
+        nc = netCDF4.Dataset(nc_path, mode='r')
+
+        # Extract the data from the netCDF file
+        time = nc.variables['time'][:]
+        lat = nc.variables['lat'][:]
+        lon = nc.variables['lon'][:]
+# This is pr for precipitation and tasmin for minimum temperature, tasmax for maximum temperature and as such. Change it per your needs.
+        precip = nc.variables['pr'][:]
+
+        # Create a DataFrame with the extracted data
+        time_column = np.repeat(time, lat.size * lon.size)
+        lat_column = np.tile(np.repeat(lat, lon.size), time.size)
+        lon_column = np.tile(lon, time.size * lat.size)
+        precip_column = precip.ravel()
+        df = pd.DataFrame({
+            'time': time_column,
+            'latitude': lat_column,
+            'longitude': lon_column,
+            'precipitation': precip_column
+        })
+
+        # Save the DataFrame as a CSV file
+        df.to_csv(output_csv_file, index=False)
